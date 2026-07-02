@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"runtime"
 	"time"
+
+	gonik "github.com/ballspins/gonik"
 )
 
 func main() {
-	if err := InitDatabase(); err != nil {
+	if err := gonik.InitDatabase(); err != nil {
 		panic(err)
 	}
 
@@ -19,7 +21,7 @@ func main() {
 
 	start := time.Now()
 	for i := 0; i < iterations; i++ {
-		parser := New("3578201503990001")
+		parser := gonik.New("3578201503990001")
 		_ = parser.District()
 		_ = parser.BirthDate()
 	}

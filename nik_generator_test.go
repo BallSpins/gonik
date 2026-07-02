@@ -1,4 +1,4 @@
-package main
+package gonik
 
 import (
 	"testing"
@@ -37,7 +37,7 @@ func TestGenerateNIK_Wanita(t *testing.T) {
 func BenchmarkGenerateNIK(b *testing.B) {
 	birthDate := time.Date(1999, 3, 15, 0, 0, 0, 0, time.UTC)
 	var buf [16]byte
-	
+
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		_, _ = GenerateNIK(buf[:], "357820", birthDate, "pria", "0001")
