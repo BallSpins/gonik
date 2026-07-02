@@ -83,7 +83,7 @@ func main() {
 
 ## Perbandingan Benchmark Riil (1 Juta Iterasi)
 
-Pengujian dilakukan secara objektif dengan membandingkan eksekusi ketat subsistem pengujian Go (`go test -bench`) antara pustaka **lawan-nik ([fanchann/nik-parser](https://github.com/fanchann/nik-parser))** melawan **gonik ([ballspins/gonik](https://github.com/BallSpins/gonik))** pada arsitektur mesin yang sama.
+Pengujian dilakukan secara objektif dengan membandingkan eksekusi ketat subsistem pengujian Go (`go test -bench`) antara pustaka **([fanchann/nik-parser](https://github.com/fanchann/nik-parser))** melawan **gonik ([ballspins/gonik](https://github.com/BallSpins/gonik))** pada arsitektur mesin yang sama.
 
 | Metrik Kinerja | [fanchann/nik-parser](https://github.com/fanchann/nik-parser) | [ballspins/gonik](https://github.com/BallSpins/gonik) | Keunggulan `gonik` |
 | :--- | :---: | :---: | :---: |
@@ -94,8 +94,8 @@ Pengujian dilakukan secara objektif dengan membandingkan eksekusi ketat subsiste
 
 ### Mengapa `gonik` Bisa Menang Telak?
 
-1. **Peniadaan Alokasi Heap (0 B/op):** Pustaka `lawan-nik` menghasilkan sampah memori sebesar 210 byte dan memicu 4 kali operasi alokasi heap (`4 allocs/op`) pada setiap satu kali proses eksekusi NIK. `gonik` mengunci seluruh siklus hidup objek di dalam **Stack Memory** sehingga CPU tidak perlu membuang siklus untuk berinteraksi dengan runtime allocator.
-2. **Bebas Degradasi Garbage Collector (GC):** Akibat dari alokasi kumulatif `lawan-nik`, memproses 1 juta data secara berurutan akan memaksa sistem meminjam memori total hingga **~200 MB** sebelum disapu oleh GC. Di sisi lain, `gonik` mempertahankan penggunaan memori kumulatif yang stabil dan bersih sejak iterasi pertama hingga terakhir.
+1. **Peniadaan Alokasi Heap (0 B/op):** Pustaka [fanchann/nik-parser](https://github.com/fanchann/nik-parser) menghasilkan sampah memori sebesar 210 byte dan memicu 4 kali operasi alokasi heap (`4 allocs/op`) pada setiap satu kali proses eksekusi NIK. `gonik` mengunci seluruh siklus hidup objek di dalam **Stack Memory** sehingga CPU tidak perlu membuang siklus untuk berinteraksi dengan runtime allocator.
+2. **Bebas Degradasi Garbage Collector (GC):** Akibat dari alokasi kumulatif [fanchann/nik-parser](https://github.com/fanchann/nik-parser), memproses 1 juta data secara berurutan akan memaksa sistem meminjam memori total hingga **~200 MB** sebelum disapu oleh GC. Di sisi lain, `gonik` mempertahankan penggunaan memori kumulatif yang stabil dan bersih sejak iterasi pertama hingga terakhir.
 3. **Single-Pass Map Lookup:** Jika parser lain melakukan pencarian map berulang kali (redundant lookup) untuk mengambil data Provinsi, Kabupaten, dan Kecamatan secara terpisah, `gonik` hanya melakukan maksimal 3 kali operasi *hashing map* sekuensial ter-cache untuk menyusun objek data KTP secara instan.
 
 ### Hasil `go test -bench` Internal
