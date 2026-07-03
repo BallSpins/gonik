@@ -5,7 +5,7 @@ import (
 	"runtime"
 	"time"
 
-	gonik "github.com/ballspins/gonik"
+	"github.com/ballspins/gonik"
 )
 
 func main() {

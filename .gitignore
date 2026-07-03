@@ -1,3 +1,2 @@
-cpu.out
-mem.out
-gonik.test.exe
+*.out
+*.exe

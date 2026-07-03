@@ -21,10 +21,10 @@ type Details struct {
 	NIK             string    `json:"nik"`
 	ProvinceID      string    `json:"province_id"`
 	Province        string    `json:"province"`
-	KabupatenKotaID string    `json:"kabupaten_kota_id"`
-	KabupatenKota   string    `json:"kabupaten_kota"`
-	KecamatanID     string    `json:"kecamatan_id"`
-	Kecamatan       string    `json:"kecamatan"`
+	RegencyCityID 	string    `json:"regency_city_id"`
+	RegencyCity   	string    `json:"regency_city"`
+	DistrictID      string    `json:"District_id"`
+	District        string    `json:"District"`
 	PostalCode      string    `json:"postal_code"`
 	Gender          string    `json:"gender"`
 	UniqueCode      string    `json:"unique_code"`
@@ -35,6 +35,7 @@ type Details struct {
 var defaultBinaryData []byte
 
 var dbCache map[string]Result
+var districtIDs []string
 
 func InitDatabase() error {
 	if len(defaultBinaryData) == 0 {
@@ -57,6 +58,13 @@ func InitDatabase() error {
 			Type:       string(row[6:7]),
 			PostalCode: strings.TrimSpace(string(row[7:12])),
 			Name:       strings.TrimSpace(string(row[12:50])),
+		}
+	}
+
+	districtIDs = make([]string, 0, len(dbCache))
+	for k := range dbCache {
+		if len(k) == 6 {
+			districtIDs = append(districtIDs, k)
 		}
 	}
 
@@ -150,7 +158,6 @@ func (p Parser) Gender() string {
 	return "male"
 }
 
-// Versi Optimasi CPU: Menghindari pemanggilan fungsi kalender yang repetitif
 func (p Parser) BirthDate() time.Time {
 	if len(p.nik) != 16 {
 		return time.Time{}
@@ -187,7 +194,6 @@ func (p Parser) BirthDate() time.Time {
 }
 
 func (p Parser) GetDetails() Details {
-	// Jika panjang NIK salah, langsung short-circuit keluar
 	if len(p.nik) != 16 {
 		return Details{}
 	}
@@ -219,11 +225,11 @@ func (p Parser) GetDetails() Details {
 		IsValid:         true,
 		ProvinceID:      provID,
 		Province:        provRes.Name,
-		KabupatenKotaID: kabID,
-		KabupatenKota:   kabRes.Name,
-		KecamatanID:     kecID,
-		Kecamatan:       kecRes.Name,
-		PostalCode:      kecRes.PostalCode, // Kodepos biasanya melekat di level kecamatan
+		RegencyCityID: 	 kabID,
+		RegencyCity:   	 kabRes.Name,
+		DistrictID:      kecID,
+		District:        kecRes.Name,
+		PostalCode:      kecRes.PostalCode,
 		Gender:          p.Gender(),
 		BirthDate:       birthDate,
 		UniqueCode:      p.nik[12:16],
