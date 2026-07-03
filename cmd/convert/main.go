@@ -77,13 +77,21 @@ func main() {
 	}
 	defer outFunc.Close()
 
+	var totalBytes int
 	for _, code := range keys {
 		info := rawData[code]
-		nameEncoded := fmt.Sprintf("%-38s", info.Name)[:38]
-		postalEncoded := fmt.Sprintf("%-5s", info.PostalCode)[:5]
 
-		row := code + info.Type + postalEncoded + nameEncoded
-		outFunc.WriteString(row)
+		nameClean := strings.TrimSpace(info.Name)
+		postalClean := strings.TrimSpace(info.PostalCode)
+
+		row := fmt.Sprintf("%s|%s|%s|%s\n", code, info.Type, postalClean, nameClean)
+
+		n, err := outFunc.WriteString(row)
+		if err != nil {
+			fmt.Println("Error: failed to write row")
+			return
+		}
+		totalBytes += n
 	}
 
 	fmt.Printf("Conversion complete! %s ditulis (%d bytes)\n", outputPath, len(rawData)*50)

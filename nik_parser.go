@@ -1,14 +1,14 @@
 package gonik
 
 import (
+	"bufio"
+	"bytes"
 	_ "embed"
 	"errors"
 	"strconv"
 	"strings"
 	"time"
 )
-
-const RowSize = 50
 
 type Result struct {
 	Type       string
@@ -42,23 +42,32 @@ func InitDatabase() error {
 		return errors.New("embedded region binary data is empty")
 	}
 
-	if len(defaultBinaryData)%RowSize != 0 {
-		return errors.New("invalid region binary size")
+	dbCache = make(map[string]Result, 7600)
+
+	scanner := bufio.NewScanner(bytes.NewReader(defaultBinaryData))
+
+	for scanner.Scan() {
+		row := scanner.Bytes()
+		if len(row) == 0 {
+			continue
+		}
+
+		parts := bytes.SplitN(row, []byte("|"), 4)
+		if len(parts) < 4 {
+			continue
+		}
+
+		code := strings.TrimRight(string(parts[0]), "-")
+		
+		dbCache[code] = Result{
+			Type:       string(parts[1]),
+			PostalCode: string(parts[2]),
+			Name:       string(parts[3]),
+		}
 	}
 
-	totalRows := len(defaultBinaryData) / RowSize
-	dbCache = make(map[string]Result, totalRows)
-
-	for i := 0; i < totalRows; i++ {
-		offset := i * RowSize
-		row := defaultBinaryData[offset : offset+RowSize]
-
-		code := strings.TrimRight(string(row[0:6]), "- ")
-		dbCache[code] = Result{
-			Type:       string(row[6:7]),
-			PostalCode: strings.TrimSpace(string(row[7:12])),
-			Name:       strings.TrimSpace(string(row[12:50])),
-		}
+	if err := scanner.Err(); err != nil {
+		return err
 	}
 
 	districtIDs = make([]string, 0, len(dbCache))
