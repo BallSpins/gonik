@@ -85,14 +85,17 @@ type Parser struct {
 }
 
 func New(nik string) Parser {
-	var sb strings.Builder
-	sb.Grow(16)
-	for i := 0; i < len(nik); i++ {
-		if nik[i] >= '0' && nik[i] <= '9' {
-			sb.WriteByte(nik[i])
+	if len(nik) != 16 {
+		return Parser{} 
+	}
+
+	for i := 0; i < 16; i++ {
+		if nik[i] < '0' || nik[i] > '9' {
+			return Parser{}
 		}
 	}
-	return Parser{nik: sb.String()}
+
+	return Parser{nik: nik}
 }
 
 func (p Parser) IsValid() bool {

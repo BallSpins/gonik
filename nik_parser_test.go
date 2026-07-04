@@ -6,23 +6,43 @@ import (
 	"unsafe"
 )
 
-// TestMain digunakan untuk setup database sekali saja sebelum seluruh test berjalan
 func TestMain(m *testing.M) {
-	// Panggil init database Anda (bisa menggunakan jalur file atau embed data)
-	// Di sini berasumsi menggunakan fungsi InitDatabase yang mengarah ke file dummy/asli
 	err := InitDatabase()
 	if err != nil {
 		panic("Gagal inisialisasi database untuk testing: " + err.Error())
 	}
 
-	// Jalankan seluruh suite pengujian
 	m.Run()
 }
 
-// 1. UNIT TEST: Menguji keakuratan logika parsing
+func TestNikParser_InvalidCharLength_TooShort(t *testing.T) {
+	invalidNIK := "123456789012345" // NIK less than 16 chars
+	parser := New(invalidNIK)
+
+	if parser.IsValid() {
+		t.Errorf("Expected isValid 'false', got '%t'", parser.IsValid())
+	}
+}
+
+func TestNikParser_InvalidCharLength_TooLong(t *testing.T) {
+	invalidNIK := "12345678901234567" // NIK more than 16 chars
+	parser := New(invalidNIK)
+
+	if parser.IsValid() {
+		t.Errorf("Expected isValid 'false', got '%t'", parser.IsValid())
+	}
+}
+
+func TestNikParser_InvalidCharLength_NonNumeric(t *testing.T) {
+	invalidNIK := "12345678901234AB"
+	parser := New(invalidNIK)
+
+	if parser.IsValid() {
+		t.Errorf("Expected isValid 'false', got '%t'", parser.IsValid())
+	}
+}
+
 func TestNikParser_GetDetails(t *testing.T) {
-	// Gunakan data NIK tiruan yang valid sesuai format wilayah.bin Anda
-	// Misal: 357820 (Surabaya), 150399 (Pria, 15 Maret 1999)
 	nikInput := "3578201503990001"
 	parser := New(nikInput)
 	details := parser.GetDetails()
@@ -37,6 +57,7 @@ func TestNikParser_GetDetails(t *testing.T) {
 		t.Errorf("Expected gender 'male', got '%s'", details.Gender)
 	}
 
+	// Validate birth date
 	birthDateStr := details.BirthDate.Format("2006-01-02")
 	if birthDateStr != "1999-03-15" {
 		t.Errorf("Ekspektasi tanggal lahir '1999-03-15', got '%s'", birthDateStr)
@@ -48,9 +69,7 @@ func TestNikParser_GetDetails(t *testing.T) {
 	}
 }
 
-// 2. UNIT TEST: Menguji skenario NIK Wanita (+40 pada tanggal)
 func TestNikParser_Wanita(t *testing.T) {
-	// Tanggal lahir 12 Agustus 2001 -> 12 + 40 = 52
 	nikInput := "3578205208010002"
 	parser := New(nikInput)
 
@@ -63,15 +82,23 @@ func TestNikParser_Wanita(t *testing.T) {
 	}
 }
 
-// 3. BENCHMARK TEST: Menguji kecepatan eksekusi dan alokasi memori
-func BenchmarkNikParser_GetDetails(b *testing.B) {
+func BenchmarkGetDetails_NewInstance(b *testing.B) {
 	nikInput := "3578201503990001"
-	parser := New(nikInput)
-
-	// Reset timer agar proses inisialisasi di atas tidak masuk dalam hitungan benchmark
+	
 	b.ResetTimer()
+	
+	for i := 0; i < b.N; i++ {
+		parser := New(nikInput)
+		_ = parser.GetDetails()
+	}
+}
 
-	// b.N akan ditentukan otomatis oleh Go untuk menguji iterasi yang optimal (bisa jutaan kali)
+func BenchmarkGetDetails_ReusedInstance(b *testing.B) {
+	nikInput := "3578201503990001"
+	
+	parser := New(nikInput)
+	b.ResetTimer()
+	
 	for i := 0; i < b.N; i++ {
 		_ = parser.GetDetails()
 	}
@@ -133,7 +160,6 @@ func BenchmarkParser_getSubstring(b *testing.B) {
 	}
 }
 
-// 4. TEST UKURAN STRUCT: Memastikan ukuran struct Details tetap efisien
 func TestStructSize(t *testing.T) {
 	var d Details
 	fmt.Printf("Ukuran total struct Details: %d bytes\n", unsafe.Sizeof(d))
